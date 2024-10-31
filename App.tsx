@@ -4,21 +4,10 @@
  *
  * @format
  */
+import {NavigationContainer} from '@react-navigation/native';
 
 import React from 'react';
-import {
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  useColorScheme,
-  View,
-} from 'react-native';
 
-import {
-  Colors,
-} from 'react-native/Libraries/NewAppScreen';
 
 // 1
 import {
@@ -27,66 +16,51 @@ import {
   createHttpLink,
   InMemoryCache
 } from '@apollo/client';
+import HomeScreen from './screens/HomeScreen';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import CreateLinkScreen from './screens/CreateLinkScreen';
 
 // 2
 const httpLink = createHttpLink({
-  uri: 'http://localhost:4000'
+  uri: 'http://localhost:4000',
 });
 
 // 3
 const client = new ApolloClient({
   link: httpLink,
-  cache: new InMemoryCache()
+  cache: new InMemoryCache(),
 });
 
 
+const Stack = createNativeStackNavigator();
 
 
 function App(): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
 
-  const backgroundStyle = {
-    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
-  };
 
   return (
     <ApolloProvider client={client}>
 
-    <SafeAreaView style={backgroundStyle}>
-      <StatusBar
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={backgroundStyle.backgroundColor}
-      />
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        style={backgroundStyle}>
-        <View
-          style={{
-            backgroundColor: isDarkMode ? Colors.black : Colors.white,
-          }}/>
-      </ScrollView>
-    </SafeAreaView>
+    <NavigationContainer>
+    <Stack.Navigator>
+        <Stack.Screen
+              name="Home"
+              component={HomeScreen}
+              options={{title: 'Welcome'}}
+            />
+                    <Stack.Screen
+              name="CreateLink"
+              component={CreateLinkScreen}
+              options={{title: 'Create Link'}}
+            />
+    </Stack.Navigator>
+
+    </NavigationContainer>
     </ApolloProvider>
+
   );
 }
 
-// const styles = StyleSheet.create({
-//   sectionContainer: {
-//     marginTop: 32,
-//     paddingHorizontal: 24,
-//   },
-//   sectionTitle: {
-//     fontSize: 24,
-//     fontWeight: '600',
-//   },
-//   sectionDescription: {
-//     marginTop: 8,
-//     fontSize: 18,
-//     fontWeight: '400',
-//   },
-//   highlight: {
-//     fontWeight: '700',
-//   },
-// });
+
 
 export default App;
