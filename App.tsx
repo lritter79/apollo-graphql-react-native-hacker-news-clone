@@ -25,6 +25,25 @@ import {
   ReloadInstructions,
 } from 'react-native/Libraries/NewAppScreen';
 
+// 1
+import {
+  ApolloProvider,
+  ApolloClient,
+  createHttpLink,
+  InMemoryCache
+} from '@apollo/client';
+
+// 2
+const httpLink = createHttpLink({
+  uri: 'http://localhost:4000'
+});
+
+// 3
+const client = new ApolloClient({
+  link: httpLink,
+  cache: new InMemoryCache()
+});
+
 type SectionProps = PropsWithChildren<{
   title: string;
 }>;
@@ -63,6 +82,8 @@ function App(): React.JSX.Element {
   };
 
   return (
+    <ApolloProvider client={client}>
+
     <SafeAreaView style={backgroundStyle}>
       <StatusBar
         barStyle={isDarkMode ? 'light-content' : 'dark-content'}
@@ -93,6 +114,7 @@ function App(): React.JSX.Element {
         </View>
       </ScrollView>
     </SafeAreaView>
+    </ApolloProvider>
   );
 }
 
