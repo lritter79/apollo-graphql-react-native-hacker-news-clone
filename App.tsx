@@ -19,6 +19,8 @@ import {
 import HomeScreen from './screens/HomeScreen';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import CreateLinkScreen from './screens/CreateLinkScreen';
+import LoginScreen from './screens/LoginScreen';
+// import { View, Text } from 'react-native';
 
 // 2
 const httpLink = createHttpLink({
@@ -42,17 +44,19 @@ function App(): React.JSX.Element {
     <ApolloProvider client={client}>
 
     <NavigationContainer>
-    <Stack.Navigator>
+    <Stack.Navigator initialRouteName="Home">
         <Stack.Screen
               name="Home"
               component={HomeScreen}
-              options={{title: 'Welcome'}}
+              options={{ title: 'Welcome' }}
+
             />
                     <Stack.Screen
               name="CreateLink"
               component={CreateLinkScreen}
               options={{title: 'Create Link'}}
             />
+            <Stack.Screen name="Login" component={LoginScreen} options={{title: 'Login'}} />
     </Stack.Navigator>
 
     </NavigationContainer>
@@ -61,6 +65,12 @@ function App(): React.JSX.Element {
   );
 }
 
-
+// function HeaderLogo() {
+//   return (
+//     <View style={{flex: 1, flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center'}}>
+//       <Text style={{color: 'white', padding: 5, fontSize: 22}}>Home</Text>
+//     </View>
+//   );
+// }
 
 export default App;
