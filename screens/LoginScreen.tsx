@@ -1,13 +1,72 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import { useMutation, gql } from '@apollo/client';
+import { AUTH_TOKEN } from '../constants';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const LoginScreen = () => {
+const LoginScreen = ({navigation}:{navigation:any}) => {
+  const SIGNUP_MUTATION = gql`
+  mutation SignupMutation(
+    $email: String!
+    $password: String!
+    $name: String!
+  ) {
+    signup(
+      email: $email
+      password: $password
+      name: $name
+    ) {
+      token
+    }
+  }
+`;
+
+const LOGIN_MUTATION = gql`
+  mutation LoginMutation(
+    $email: String!
+    $password: String!
+  ) {
+    login(email: $email, password: $password) {
+      token
+    }
+  }
+`;
   const [formState, setFormState] = useState({
     login: true,
     email: '',
     password: '',
-    name: ''
+    name: '',
   });
+
+  const [login] = useMutation(LOGIN_MUTATION, {
+    variables: {
+      email: formState.email,
+      password: formState.password,
+    },
+    onError: (error) => {
+      console.log(error);
+    },
+    onCompleted: async ({ login }) => {
+      console.log(login);
+      await AsyncStorage.setItem(AUTH_TOKEN, login.token);
+      navigation.navigate('Home');
+    },
+  });
+  
+  const [signup] = useMutation(SIGNUP_MUTATION, {
+    variables: {
+      name: formState.name,
+      email: formState.email,
+      password: formState.password,
+    },
+    onError: (error) => {
+      console.log(error);
+    },
+    onCompleted: async ({ signup }) => {
+      console.log(signup);
+      await AsyncStorage.setItem(AUTH_TOKEN, signup.token);
+      navigation.navigate('Home')    },
+  })
 
   return (
     <View style={styles.container}>
@@ -22,7 +81,7 @@ const LoginScreen = () => {
             onChangeText={(text) =>
               setFormState({
                 ...formState,
-                name: text
+                name: text,
               })
             }
             placeholder="Your name"
@@ -34,7 +93,7 @@ const LoginScreen = () => {
           onChangeText={(text) =>
             setFormState({
               ...formState,
-              email: text
+              email: text,
             })
           }
           placeholder="Your email address"
@@ -46,7 +105,7 @@ const LoginScreen = () => {
           onChangeText={(text) =>
             setFormState({
               ...formState,
-              password: text
+              password: text,
             })
           }
           placeholder="Choose a safe password"
@@ -56,7 +115,7 @@ const LoginScreen = () => {
       <View style={styles.buttonContainer}>
         <TouchableOpacity
           style={styles.button}
-          onPress={() => console.log('onClick')}
+          onPress={() => formState.login ? login() : signup()}
         >
           <Text style={styles.buttonText}>
             {formState.login ? 'login' : 'create account'}
@@ -67,7 +126,7 @@ const LoginScreen = () => {
           onPress={() =>
             setFormState({
               ...formState,
-              login: !formState.login
+              login: !formState.login,
             })
           }
         >

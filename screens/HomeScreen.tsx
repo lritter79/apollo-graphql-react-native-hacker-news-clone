@@ -1,11 +1,29 @@
-import React from 'react';
+import React, {useState, useEffect} from 'react';
 import { SafeAreaView, StatusBar, ScrollView, View, useColorScheme, Text, Button } from 'react-native';
 import { Colors } from 'react-native/Libraries/NewAppScreen';
 import Link from '../components/Link';
 import { useQuery, gql } from '@apollo/client';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { AUTH_TOKEN } from '../constants';
 
 
 const HomeScreen = ({navigation}:{navigation:any}) => {
+  const [authToken, setAuthToken] = useState('');
+
+  useEffect(() => {
+    AsyncStorage.clear()
+    async function fetchData() {
+      try {
+        const value = await AsyncStorage.getItem(AUTH_TOKEN);
+        if (value !== null) {
+          setAuthToken(value);
+        }
+      } catch (e) {
+        console.log('Error reading value', e);
+      }
+    }
+    fetchData();
+  }, []);
     const FEED_QUERY = gql`
   {
     feed {
@@ -43,15 +61,25 @@ const { data } = useQuery(FEED_QUERY);
 
 
 <Text>Home Screen</Text>
-      {linksToRender.map((link:{description:string, id:string}) => (
-        <Link key={link.id} {...link}/>
+{authToken && <Text>Logged in {authToken}</Text>}
+      {linksToRender.map((link:{id:string, description:string, authToken?:string | null, votes?: any[], postedBy?: {name:string}}) => (
+        <Link key={link.id} {...link}  authToken={authToken} />
       ))}
+
+      {authToken && 
     <Button
       title="Go to Create a Link"
       onPress={() =>
         navigation.navigate('CreateLink')
       }
-    />
+    />}
+          {!authToken && 
+    <Button
+      title="Login"
+      onPress={() =>
+        navigation.navigate('Login')
+      }
+    />}
           </View>
       </ScrollView>
     </SafeAreaView>  );

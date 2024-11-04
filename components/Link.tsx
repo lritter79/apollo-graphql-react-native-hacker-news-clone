@@ -1,11 +1,13 @@
 import React from 'react'
-import { Text } from 'react-native'
+import { Text, View } from 'react-native'
 
 
 
-const Link:React.FC<{description:string}> = (props) => {
+const Link:React.FC<{description:string, authToken?:string | null, votes?: any[], postedBy?: {name:string}}> = (props) => {
   return (
-    <Text>{props.description}</Text>
+    <View>    <Text>{props.description}</Text>
+å
+</View>
   )
 }
 

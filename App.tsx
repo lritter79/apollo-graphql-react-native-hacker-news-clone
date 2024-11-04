@@ -9,23 +9,36 @@ import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
 
 
+
 // 1
 import {
   ApolloProvider,
   ApolloClient,
   createHttpLink,
-  InMemoryCache
+  InMemoryCache,
 } from '@apollo/client';
+import { setContext } from '@apollo/client/link/context';
+
 import HomeScreen from './screens/HomeScreen';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import CreateLinkScreen from './screens/CreateLinkScreen';
 import LoginScreen from './screens/LoginScreen';
-// import { View, Text } from 'react-native';
-
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { AUTH_TOKEN } from './constants';
 // 2
 const httpLink = createHttpLink({
   uri: 'http://localhost:4000',
 });
+
+// const authLink = setContext((_, { headers }) => {
+//   const token = AsyncStorage.getItem(AUTH_TOKEN);
+//   return {
+//     headers: {
+//       ...headers,
+//       authorization: token ? `Bearer ${token}` : '',
+//     },
+//   };
+// });
 
 // 3
 const client = new ApolloClient({
@@ -38,6 +51,7 @@ const Stack = createNativeStackNavigator();
 
 
 function App(): React.JSX.Element {
+
 
 
   return (
@@ -74,3 +88,5 @@ function App(): React.JSX.Element {
 // }
 
 export default App;
+
+

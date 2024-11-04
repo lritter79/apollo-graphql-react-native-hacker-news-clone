@@ -15,8 +15,10 @@ const CreateLinkScreen = () => {
       {text: 'OK', onPress: () =>
         {
           console.log('OK Pressed');
-      createLink().then(() => { console.log('Link Created');});
-    },
+          createLink()
+          .then(() => { console.log('Link Created');})
+          .catch((error) => { console.log('Error Creating Link', error);});
+        },
       },
     ]);
 
