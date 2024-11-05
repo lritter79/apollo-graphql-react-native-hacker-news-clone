@@ -9,10 +9,34 @@ import {
   Button,
 } from 'react-native';
 import {Colors} from 'react-native/Libraries/NewAppScreen';
-import Link from '../components/Link';
 import {useQuery, gql} from '@apollo/client';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {AUTH_TOKEN} from '../constants';
+import {LinkList} from '../components/LinkList';
+
+export const FEED_QUERY = gql`
+  {
+    feed {
+      id
+      links {
+        id
+        createdAt
+        url
+        description
+        postedBy {
+          id
+          name
+        }
+        votes {
+          id
+          user {
+            id
+          }
+        }
+      }
+    }
+  }
+`;
 
 const HomeScreen = ({navigation}: {navigation: any}) => {
   const [authToken, setAuthToken] = useState('');
@@ -32,19 +56,6 @@ const HomeScreen = ({navigation}: {navigation: any}) => {
     fetchData();
   }, []);
 
-  const FEED_QUERY = gql`
-    {
-      feed {
-        id
-        links {
-          id
-          createdAt
-          url
-          description
-        }
-      }
-    }
-  `;
   const {data} = useQuery(FEED_QUERY);
 
   const isDarkMode = useColorScheme() === 'dark';
@@ -68,10 +79,7 @@ const HomeScreen = ({navigation}: {navigation: any}) => {
           }}>
           <Text>Home Screen</Text>
           {authToken && <Text>Logged in</Text>}
-          {linksToRender.map(link => (
-            <Link key={link.id} {...{...link, authToken: authToken}} />
-          ))}
-
+          <LinkList links={linksToRender} authToken={authToken} />
           {authToken && (
             <Button
               title="Go to Create a Link"

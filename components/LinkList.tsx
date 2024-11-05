@@ -1,12 +1,23 @@
 import React from 'react';
+import {View} from 'react-native';
+import Link from './Link';
 
 export const LinkList: React.FC<{
+  authToken: string;
   links: {
+    id: string;
     description: string;
     authToken: string;
     votes?: any[];
-    postedBy?: {name: string};
+    postedBy?: {name: string} | null;
   }[];
-}> = () => {
-  return <div>LinkList</div>;
+}> = ({links, authToken}) => {
+  console.log(links);
+  return (
+    <View>
+      {links.map((link, index) => (
+        <Link key={link.id} {...{...link, authToken, index}} />
+      ))}
+    </View>
+  );
 };

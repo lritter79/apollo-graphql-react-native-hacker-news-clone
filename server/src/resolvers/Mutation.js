@@ -86,9 +86,34 @@ async function vote(parent, args, context, info) {
   return newVote;
 }
 
+async function deleteLink(parent, args, context, info) {
+  try {
+    const {userId} = context;
+    const link = await context.prisma.link.findUnique({
+      where: {id: args.linkId},
+    });
+    if (link.postedById !== userId) {
+      throw new Error('Not authorized to delete this link');
+    }
+
+    await context.prisma.vote.deleteMany({
+      where: {linkId: args.linkId},
+    });
+    await context.prisma.link.delete({
+      where: {id: args.linkId},
+    });
+
+    return link;
+  } catch (error) {
+    console.log(error);
+    throw new Error('Link not found');
+  }
+}
+
 module.exports = {
   post,
   signup,
   login,
   vote,
+  deleteLink,
 };
