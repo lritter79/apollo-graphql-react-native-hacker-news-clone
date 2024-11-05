@@ -1,5 +1,6 @@
 import {gql, useMutation} from '@apollo/client';
-import React from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import React, {useEffect, useState} from 'react';
 import {Button, Text, View} from 'react-native';
 
 const VOTE_MUTATION = gql`
@@ -35,10 +36,27 @@ const Link: React.FC<{
   description: string;
   authToken: string;
   votes?: any[];
-  postedBy?: {name: string} | null;
+  postedBy?: {name: string; id: string} | null;
   index: number;
 }> = props => {
   // console.log(props);
+  const [userId, setUserId] = useState('');
+
+  useEffect(() => {
+    console.log('home rendered');
+    async function fetchData() {
+      try {
+        const value = await AsyncStorage.getItem('user_id');
+        if (value !== null) {
+          setUserId(value);
+        }
+      } catch (e) {
+        console.log('Error reading value', e);
+      }
+    }
+    fetchData();
+  }, []);
+
   const [vote] = useMutation(VOTE_MUTATION, {
     variables: {
       linkId: props.id,
@@ -63,7 +81,7 @@ const Link: React.FC<{
     <View>
       <Text>{props.description}</Text>
       {props.authToken && <Button title="Upvote" onPress={() => vote()} />}
-      {props.authToken && (
+      {props.authToken && props.postedBy?.id === userId && (
         <Button title="Delete" onPress={() => deleteLink()} />
       )}
       <Text>

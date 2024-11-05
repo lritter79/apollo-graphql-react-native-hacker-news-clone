@@ -27,6 +27,9 @@ const LoginScreen = ({navigation}: {navigation: any}) => {
     mutation LoginMutation($email: String!, $password: String!) {
       login(email: $email, password: $password) {
         token
+        user {
+          id
+        }
       }
     }
   `;
@@ -48,6 +51,7 @@ const LoginScreen = ({navigation}: {navigation: any}) => {
     onCompleted: async ({login}) => {
       console.log(login);
       await AsyncStorage.setItem(AUTH_TOKEN, login.token);
+      await AsyncStorage.setItem('user_id', login.user.id);
       navigation.navigate('Home');
     },
   });

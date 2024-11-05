@@ -9,7 +9,7 @@ export const LinkList: React.FC<{
     description: string;
     authToken: string;
     votes?: any[];
-    postedBy?: {name: string} | null;
+    postedBy?: {name: string; id: string} | null;
   }[];
 }> = ({links, authToken}) => {
   console.log(links);
