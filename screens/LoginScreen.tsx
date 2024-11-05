@@ -1,36 +1,35 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
-import { useMutation, gql } from '@apollo/client';
-import { AUTH_TOKEN } from '../constants';
+import React, {useState} from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+} from 'react-native';
+import {useMutation, gql} from '@apollo/client';
+import {AUTH_TOKEN} from '../constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const LoginScreen = ({navigation}:{navigation:any}) => {
+const LoginScreen = ({navigation}: {navigation: any}) => {
   const SIGNUP_MUTATION = gql`
-  mutation SignupMutation(
-    $email: String!
-    $password: String!
-    $name: String!
-  ) {
-    signup(
-      email: $email
-      password: $password
-      name: $name
+    mutation SignupMutation(
+      $email: String!
+      $password: String!
+      $name: String!
     ) {
-      token
+      signup(email: $email, password: $password, name: $name) {
+        token
+      }
     }
-  }
-`;
+  `;
 
-const LOGIN_MUTATION = gql`
-  mutation LoginMutation(
-    $email: String!
-    $password: String!
-  ) {
-    login(email: $email, password: $password) {
-      token
+  const LOGIN_MUTATION = gql`
+    mutation LoginMutation($email: String!, $password: String!) {
+      login(email: $email, password: $password) {
+        token
+      }
     }
-  }
-`;
+  `;
   const [formState, setFormState] = useState({
     login: true,
     email: '',
@@ -43,30 +42,31 @@ const LOGIN_MUTATION = gql`
       email: formState.email,
       password: formState.password,
     },
-    onError: (error) => {
+    onError: error => {
       console.log(error);
     },
-    onCompleted: async ({ login }) => {
+    onCompleted: async ({login}) => {
       console.log(login);
       await AsyncStorage.setItem(AUTH_TOKEN, login.token);
       navigation.navigate('Home');
     },
   });
-  
+
   const [signup] = useMutation(SIGNUP_MUTATION, {
     variables: {
       name: formState.name,
       email: formState.email,
       password: formState.password,
     },
-    onError: (error) => {
+    onError: error => {
       console.log(error);
     },
-    onCompleted: async ({ signup }) => {
+    onCompleted: async ({signup}) => {
       console.log(signup);
       await AsyncStorage.setItem(AUTH_TOKEN, signup.token);
-      navigation.navigate('Home')    },
-  })
+      navigation.navigate('Home');
+    },
+  });
 
   return (
     <View style={styles.container}>
@@ -78,7 +78,7 @@ const LOGIN_MUTATION = gql`
           <TextInput
             style={styles.input}
             value={formState.name}
-            onChangeText={(text) =>
+            onChangeText={text =>
               setFormState({
                 ...formState,
                 name: text,
@@ -90,7 +90,7 @@ const LOGIN_MUTATION = gql`
         <TextInput
           style={styles.input}
           value={formState.email}
-          onChangeText={(text) =>
+          onChangeText={text =>
             setFormState({
               ...formState,
               email: text,
@@ -102,7 +102,7 @@ const LOGIN_MUTATION = gql`
         <TextInput
           style={styles.input}
           value={formState.password}
-          onChangeText={(text) =>
+          onChangeText={text =>
             setFormState({
               ...formState,
               password: text,
@@ -115,8 +115,7 @@ const LOGIN_MUTATION = gql`
       <View style={styles.buttonContainer}>
         <TouchableOpacity
           style={styles.button}
-          onPress={() => formState.login ? login() : signup()}
-        >
+          onPress={() => (formState.login ? login() : signup())}>
           <Text style={styles.buttonText}>
             {formState.login ? 'login' : 'create account'}
           </Text>
@@ -128,8 +127,7 @@ const LOGIN_MUTATION = gql`
               ...formState,
               login: !formState.login,
             })
-          }
-        >
+          }>
           <Text style={styles.buttonText}>
             {formState.login
               ? 'need to create an account?'
