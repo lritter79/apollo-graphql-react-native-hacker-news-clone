@@ -68,17 +68,9 @@ const HomeScreen = ({navigation}: {navigation: any}) => {
           }}>
           <Text>Home Screen</Text>
           {authToken && <Text>Logged in</Text>}
-          {linksToRender.map(
-            (link: {
-              id: string;
-              description: string;
-              authToken?: string | null;
-              votes?: any[];
-              postedBy?: {name: string};
-            }) => (
-              <Link key={link.id} {...link} authToken={authToken} />
-            ),
-          )}
+          {linksToRender.map(link => (
+            <Link key={link.id} {...{...link, authToken: authToken}} />
+          ))}
 
           {authToken && (
             <Button
