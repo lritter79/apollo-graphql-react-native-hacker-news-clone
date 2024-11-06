@@ -13,8 +13,54 @@ import {useQuery, gql} from '@apollo/client';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {AUTH_TOKEN} from '../constants';
 import {LinkList} from '../components/LinkList';
+const NEW_VOTES_SUBSCRIPTION = gql`
+  subscription {
+    newVote {
+      id
+      link {
+        id
+        url
+        description
+        createdAt
+        postedBy {
+          id
+          name
+        }
+        votes {
+          id
+          user {
+            id
+          }
+        }
+      }
+      user {
+        id
+      }
+    }
+  }
+`;
+const NEW_LINKS_SUBSCRIPTION = gql`
+  subscription {
+    newLink {
+      id
+      url
+      description
+      createdAt
+      postedBy {
+        id
+        name
+      }
+      votes {
+        id
+        user {
+          id
+        }
+      }
+    }
+  }
+`;
 
-export const FEED_QUERY = gql`
+const OLD_FEED_QUERY = gql`
   {
     feed {
       id
@@ -34,13 +80,48 @@ export const FEED_QUERY = gql`
           }
         }
       }
+      count
     }
   }
 `;
 
+export const FEED_QUERY = gql`
+  query FeedQuery($take: Int, $skip: Int, $orderBy: LinkOrderByInput) {
+    feed(take: $take, skip: $skip, orderBy: $orderBy) {
+      id
+      links {
+        id
+        createdAt
+        url
+        description
+        postedBy {
+          id
+          name
+        }
+        votes {
+          id
+          user {
+            id
+          }
+        }
+      }
+      count
+    }
+  }
+`;
+
+export const LINKS_PER_PAGE = 5;
+
 const HomeScreen = ({navigation}: {navigation: any}) => {
   const [authToken, setAuthToken] = useState('');
+  const [page, setPage] = useState(0);
 
+  const getQueryVariables = () => {
+    const skip = page * LINKS_PER_PAGE;
+    const take = LINKS_PER_PAGE;
+    const orderBy = {createdAt: 'desc'};
+    return {take, skip, orderBy};
+  };
   useEffect(() => {
     console.log('home rendered');
     async function fetchData() {
@@ -56,8 +137,29 @@ const HomeScreen = ({navigation}: {navigation: any}) => {
     fetchData();
   }, []);
 
-  const {data} = useQuery(FEED_QUERY);
+  const {data, loading, error, subscribeToMore} = useQuery(FEED_QUERY, {
+    variables: getQueryVariables(),
+  });
+  subscribeToMore({
+    document: NEW_LINKS_SUBSCRIPTION,
+    updateQuery: (prev, {subscriptionData}) => {
+      if (!subscriptionData.data) return prev;
+      const newLink = subscriptionData.data.newLink;
+      const exists = prev.feed.links.find(({id}) => id === newLink.id);
+      if (exists) return prev;
 
+      return Object.assign({}, prev, {
+        feed: {
+          links: [newLink, ...prev.feed.links],
+          count: prev.feed.links.length + 1,
+          __typename: prev.feed.__typename,
+        },
+      });
+    },
+  });
+  subscribeToMore({
+    document: NEW_VOTES_SUBSCRIPTION,
+  });
   const isDarkMode = useColorScheme() === 'dark';
 
   const backgroundStyle = {
@@ -86,6 +188,11 @@ const HomeScreen = ({navigation}: {navigation: any}) => {
               onPress={() => navigation.navigate('CreateLink')}
             />
           )}
+          <Button title="Next Page" onPress={() => setPage(page + 1)} />
+          <Button
+            title="Search"
+            onPress={() => navigation.navigate('Search')}
+          />
           {authToken && (
             <Button
               title="Logout"

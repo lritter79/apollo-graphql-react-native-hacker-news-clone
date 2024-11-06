@@ -1,6 +1,7 @@
 import React, {useState} from 'react';
 import {Text, View, TextInput, Button, Alert} from 'react-native';
 import {useMutation, gql} from '@apollo/client';
+import {FEED_QUERY} from './HomeScreen';
 
 const CreateLinkScreen = () => {
   const createTwoButtonAlert = () =>
@@ -48,6 +49,20 @@ const CreateLinkScreen = () => {
     variables: {
       description: formState.description,
       url: formState.url,
+    },
+    update: (cache, {data: {post}}) => {
+      const data = cache.readQuery({
+        query: FEED_QUERY,
+      });
+
+      cache.writeQuery({
+        query: FEED_QUERY,
+        data: {
+          feed: {
+            links: [post, ...data.feed.links],
+          },
+        },
+      });
     },
   });
   return (

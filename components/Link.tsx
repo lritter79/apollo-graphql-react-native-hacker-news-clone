@@ -2,6 +2,7 @@ import {gql, useMutation} from '@apollo/client';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, {useEffect, useState} from 'react';
 import {Button, Text, View} from 'react-native';
+import {FEED_QUERY} from '../screens/HomeScreen';
 
 const VOTE_MUTATION = gql`
   mutation VoteMutation($linkId: ID!) {
@@ -43,7 +44,6 @@ const Link: React.FC<{
   const [userId, setUserId] = useState('');
 
   useEffect(() => {
-    console.log('home rendered');
     async function fetchData() {
       try {
         const value = await AsyncStorage.getItem('user_id');
@@ -64,6 +64,31 @@ const Link: React.FC<{
     onCompleted: () => {
       console.log('Voted');
     },
+    // update: (cache, {data: {vote}}) => {
+    //   console.log('Voted', vote);
+    //   const {feed} = cache.readQuery({
+    //     query: FEED_QUERY,
+    //   });
+
+    //   const updatedLinks = feed.links.map(feedLink => {
+    //     if (feedLink.id === props.id) {
+    //       return {
+    //         ...feedLink,
+    //         votes: [...feedLink.votes, vote],
+    //       };
+    //     }
+    //     return feedLink;
+    //   });
+
+    //   cache.writeQuery({
+    //     query: FEED_QUERY,
+    //     data: {
+    //       feed: {
+    //         links: updatedLinks,
+    //       },
+    //     },
+    //   });
+    // },
   });
 
   const [deleteLink] = useMutation(DELTE_LINK_MUTATION, {
@@ -76,11 +101,27 @@ const Link: React.FC<{
     onError: error => {
       console.log('Error Deleting Link', error);
     },
+    update: cache => {
+      const data = cache.readQuery({
+        query: FEED_QUERY,
+      });
+
+      let newLinks = data.feed.links.filter(link => link.id !== props.id);
+
+      cache.writeQuery({
+        query: FEED_QUERY,
+        data: {
+          feed: {
+            links: [...newLinks],
+          },
+        },
+      });
+    },
   });
   return (
     <View>
       <Text>{props.description}</Text>
-      {props.authToken && <Button title="Upvote" onPress={() => vote()} />}
+      {props.authToken && <Button title="▲ Upvote" onPress={() => vote()} />}
       {props.authToken && props.postedBy?.id === userId && (
         <Button title="Delete" onPress={() => deleteLink()} />
       )}
