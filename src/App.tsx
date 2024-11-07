@@ -73,8 +73,10 @@ function App(): React.JSX.Element {
 
   const link = split(
     ({query}) => {
-      const {kind, operation} = getMainDefinition(query);
-      return kind === 'OperationDefinition' && operation === 'subscription';
+      const def = getMainDefinition(query);
+      return (
+        def.kind === 'OperationDefinition' && def.operation === 'subscription'
+      );
     },
     wsLink,
     authLink.concat(httpLink),

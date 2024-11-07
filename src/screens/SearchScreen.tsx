@@ -1,8 +1,9 @@
 import React, {useState} from 'react';
 import {View, Text, TextInput, Button} from 'react-native';
-import {useLazyQuery, gql} from '@apollo/client';
+import {useLazyQuery} from '@apollo/client';
 import {LinkList} from '../components/LinkList';
-const FEED_SEARCH_QUERY = gql`
+import {gql} from '../__generated__/gql';
+const FEED_SEARCH_QUERY = gql(`
   query FeedSearchQuery($filter: String!) {
     feed(filter: $filter) {
       id
@@ -24,7 +25,7 @@ const FEED_SEARCH_QUERY = gql`
       }
     }
   }
-`;
+`);
 export const SearchScreen = () => {
   const [searchFilter, setSearchFilter] = useState('');
   const [executeSearch, {data}] = useLazyQuery(FEED_SEARCH_QUERY);

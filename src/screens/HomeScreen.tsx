@@ -9,106 +9,38 @@ import {
   Button,
 } from 'react-native';
 import {Colors} from 'react-native/Libraries/NewAppScreen';
-import {useQuery, gql} from '@apollo/client';
+import {useQuery} from '@apollo/client';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {AUTH_TOKEN} from '../constants';
 import {LinkList} from '../components/LinkList';
-const NEW_VOTES_SUBSCRIPTION = gql`
-  subscription {
-    newVote {
-      id
-      link {
-        id
-        url
-        description
-        createdAt
-        postedBy {
-          id
-          name
-        }
-        votes {
-          id
-          user {
-            id
-          }
-        }
-      }
-      user {
-        id
-      }
-    }
-  }
-`;
-const NEW_LINKS_SUBSCRIPTION = gql`
-  subscription {
+import {Sort} from '../__generated__/graphql';
+import {
+  FEED_QUERY,
+  // NEW_LINKS_SUBSCRIPTION,
+  NEW_VOTES_SUBSCRIPTION,
+} from '../data';
+import {gql} from '../__generated__/gql';
+export const NEW_LINKS_SUBSCRIPTION = gql(`
+  subscription NewLink
+  { 
     newLink {
-      id
-      url
-      description
-      createdAt
-      postedBy {
-        id
-        name
-      }
-      votes {
-        id
-        user {
-          id
-        }
-      }
-    }
-  }
-`;
-
-const OLD_FEED_QUERY = gql`
-  {
-    feed {
-      id
-      links {
-        id
-        createdAt
-        url
-        description
-        postedBy {
-          id
-          name
-        }
-        votes {
-          id
-          user {
+       id
+          createdAt
+          url
+          description
+          postedBy {
             id
+            name
           }
-        }
-      }
-      count
-    }
-  }
-`;
-
-export const FEED_QUERY = gql`
-  query FeedQuery($take: Int, $skip: Int, $orderBy: LinkOrderByInput) {
-    feed(take: $take, skip: $skip, orderBy: $orderBy) {
-      id
-      links {
-        id
-        createdAt
-        url
-        description
-        postedBy {
-          id
-          name
-        }
-        votes {
-          id
-          user {
+          votes {
             id
+            user {
+              id
+            }
           }
-        }
-      }
-      count
     }
   }
-`;
+  `);
 
 export const LINKS_PER_PAGE = 5;
 
@@ -116,12 +48,6 @@ const HomeScreen = ({navigation}: {navigation: any}) => {
   const [authToken, setAuthToken] = useState('');
   const [page, setPage] = useState(0);
 
-  const getQueryVariables = () => {
-    const skip = page * LINKS_PER_PAGE;
-    const take = LINKS_PER_PAGE;
-    const orderBy = {createdAt: 'desc'};
-    return {take, skip, orderBy};
-  };
   useEffect(() => {
     console.log('home rendered');
     async function fetchData() {
@@ -137,15 +63,23 @@ const HomeScreen = ({navigation}: {navigation: any}) => {
     fetchData();
   }, []);
 
-  const {data, loading, error, subscribeToMore} = useQuery(FEED_QUERY, {
-    variables: getQueryVariables(),
+  const {data, subscribeToMore} = useQuery(FEED_QUERY, {
+    variables: {
+      take: LINKS_PER_PAGE,
+      skip: page * LINKS_PER_PAGE,
+      orderBy: {createdAt: 'desc' as Sort},
+    },
   });
+
   subscribeToMore({
     document: NEW_LINKS_SUBSCRIPTION,
     updateQuery: (prev, {subscriptionData}) => {
-      if (!subscriptionData.data) return prev;
-      const newLink = subscriptionData.data.newLink;
+      if (!subscriptionData.data?.newLink) {
+        return prev;
+      }
+      const newLink = subscriptionData.data?.newLink;
       const exists = prev.feed.links.find(({id}) => id === newLink.id);
+      // eslint-disable-next-line curly
       if (exists) return prev;
 
       return Object.assign({}, prev, {

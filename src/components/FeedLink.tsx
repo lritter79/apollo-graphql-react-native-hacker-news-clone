@@ -1,10 +1,10 @@
-import {gql, useMutation} from '@apollo/client';
+import {useMutation} from '@apollo/client';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, {useEffect, useState} from 'react';
 import {Button, Text, View} from 'react-native';
-import {FEED_QUERY} from '../screens/HomeScreen';
-
-const VOTE_MUTATION = gql`
+import {gql} from '../__generated__/gql';
+import {FEED_QUERY} from '../data';
+const VOTE_MUTATION = gql(`
   mutation VoteMutation($linkId: ID!) {
     vote(linkId: $linkId) {
       id
@@ -22,27 +22,41 @@ const VOTE_MUTATION = gql`
       }
     }
   }
-`;
+`);
 
-const DELTE_LINK_MUTATION = gql`
+const DELTE_LINK_MUTATION = gql(`
   mutation DeleteLinkMutation($linkId: ID!) {
     deleteLink(linkId: $linkId) {
       id
     }
   }
-`;
+`);
 
-const Link: React.FC<{
-  id: string;
-  description: string;
+const FeedLink: React.FC<{
+  link: {
+    __typename?: 'Link';
+    id: string;
+    createdAt: any;
+    url: string;
+    description: string;
+    postedBy?: {
+      __typename?: 'User';
+      id: string;
+      name: string;
+    } | null;
+    votes: Array<{
+      __typename?: 'Vote';
+      id: string;
+      user: {
+        __typename?: 'User';
+        id: string;
+      };
+    }>;
+  };
   authToken: string;
-  votes?: any[];
-  postedBy?: {name: string; id: string} | null;
-  index: number;
 }> = props => {
-  // console.log(props);
   const [userId, setUserId] = useState('');
-
+  const {id, description, votes, postedBy} = props.link;
   useEffect(() => {
     async function fetchData() {
       try {
@@ -59,7 +73,7 @@ const Link: React.FC<{
 
   const [vote] = useMutation(VOTE_MUTATION, {
     variables: {
-      linkId: props.id,
+      linkId: id,
     },
     onCompleted: () => {
       console.log('Voted');
@@ -93,7 +107,7 @@ const Link: React.FC<{
 
   const [deleteLink] = useMutation(DELTE_LINK_MUTATION, {
     variables: {
-      linkId: props.id,
+      linkId: props.link.id,
     },
     onCompleted: () => {
       console.log('Deleted');
@@ -105,32 +119,29 @@ const Link: React.FC<{
       const data = cache.readQuery({
         query: FEED_QUERY,
       });
+      const feed = data ? data.feed : {links: []};
 
-      let newLinks = data.feed.links.filter(link => link.id !== props.id);
+      let newLinks = data ? data.feed.links.filter(link => link.id !== id) : [];
 
       cache.writeQuery({
         query: FEED_QUERY,
-        data: {
-          feed: {
-            links: [...newLinks],
-          },
-        },
+        data: {...data, feed: {...feed, links: newLinks}},
       });
     },
   });
   return (
     <View>
-      <Text>{props.description}</Text>
+      <Text>{description}</Text>
       {props.authToken && <Button title="▲ Upvote" onPress={() => vote()} />}
-      {props.authToken && props.postedBy?.id === userId && (
+      {props.authToken && postedBy?.id === userId && (
         <Button title="Delete" onPress={() => deleteLink()} />
       )}
       <Text>
-        {props?.votes ? props?.votes.length : 0} votes | by{' '}
-        {props.postedBy ? props.postedBy.name : 'Unknown'}{' '}
+        {votes ? votes.length : 0} votes | by{' '}
+        {postedBy ? postedBy.name : 'Unknown'}{' '}
       </Text>
     </View>
   );
 };
 
-export default Link;
+export default FeedLink;

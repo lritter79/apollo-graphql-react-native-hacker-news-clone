@@ -7,8 +7,8 @@ import {
   StyleSheet,
 } from 'react-native';
 import {useMutation, gql} from '@apollo/client';
-import {AUTH_TOKEN} from '../constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {AUTH_TOKEN} from '../constants';
 
 const LoginScreen = ({navigation}: {navigation: any}) => {
   const SIGNUP_MUTATION = gql`
